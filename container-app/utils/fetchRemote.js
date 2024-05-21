@@ -28,11 +28,12 @@ const fetchRemote = (url, remoteName, scriptID) =>
 						console.error(
 							`Failed to initialize remote: ${remoteName}`
 						);
+						
 						deleteScript();
-						reject(e);
 					}
 				},
 			};
+
 			resolve(proxy);
 		};
 

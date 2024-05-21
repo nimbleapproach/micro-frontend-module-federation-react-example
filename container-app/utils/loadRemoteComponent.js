@@ -1,41 +1,38 @@
-import React from 'react';
 import fetchRemote from './fetchRemote';
 
 const loadRemoteComponent = () => async () => {
         const scriptID = 'remote-app-script';
         const scope = 'default';
-        const moduleName = 'remoteApp';
-        const remoteName = 'remoteApp';
+        const remoteAppName = 'remoteApp';
 
 		try {
-            // Check if this remote has already been loaded
-			if (!(remoteName in window)) {
-				// Initializes the shared scope. Fills it with known provided modules from this build and all remotes
-				// eslint-disable-next-line no-undef
+            // Check if this remote has not been loaded
+			if (!(remoteAppName in window)) {
+				// Initialize the shared dependencies to be passed to remote apps 
 				await __webpack_init_sharing__(scope);
 
-				// Fetch the remote app. We assume our remote app is exposing a `remoteEntry.js` file.
-				const fetchedContainer = await fetchRemote(
-					`http://localhost:3131/remoteEntry.js`,
-					remoteName,
+				// Fetch the remote app
+				// The URL is determined by which domain we host the remote app on
+				// The filename matches to the Module Federation Plugins filename value - remoteEntry.js
+				const fetchedRemote = await fetchRemote(
+					'http://localhost:3131/remoteEntry.js',
+					remoteAppName,
 					scriptID
 				);
-			
 				
 				// Initialize the remote app
-				await fetchedContainer.init(__webpack_share_scopes__[scope]);
+				await fetchedRemote.init(__webpack_share_scopes__[scope]);
 			}
-			// 'container' is the remote app
-			const container = window[remoteName];
 
-			// The module pass to get() must match the "exposes" item in our remote app exactly
-			const factory = await container.get(`./${moduleName}`);
+			const remoteApp = window[remoteAppName];
 
-			// 'Module' is the React Component from our remote app's "exposes" configuration
-			const Module = factory();
+			// The filename passed here matches the "exposes" item in our remote app exactly
+			const factory = await remoteApp.get(`./remoteApp`);
 
+			// RemoteAppComponent is the React Component that our remote app's "exposes" configuration references
+			const RemoteAppComponent = factory();
 			
-			return Module;
+			return RemoteAppComponent;
 		} catch (error) {
 			return error;
 		}
